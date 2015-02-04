@@ -1,5 +1,6 @@
 module IAMF
 using DataStructures
+using DataFrames
 
 export
 	ComponentState, timestep, run, @defcomp, Model, setindex, addcomponent, setparameter,
@@ -19,6 +20,15 @@ type Model
 		m.indices_values = Dict{Symbol, Vector{Any}}()
 		m.components = OrderedDict{Symbol,ComponentState}()
 		m.parameters_that_are_set = Set{String}()
+		return m
+	end
+end
+
+type DataFramesViewOnModel
+	parentModel::Model
+
+	function DataFramesViewOnModel(model)
+		m = new(model)
 		return m
 	end
 end
@@ -108,6 +118,31 @@ function getindex(m::Model, component::Symbol, name::Symbol)
 	return getfield(m.components[component].Variables, name)
 end
 
+function getindex(m::DataFramesViewOnModel, component::Symbol, name::Symbol)
+	pm = m.parentModel
+	comp_type = typeof(pm.components[component])
+	vardiminfo = getdiminfoforvar(pm.components[component], name)
+	if length(vardiminfo)==0
+		return pm[component, name]
+	elseif length(vardiminfo)==1
+		df = DataFrame()
+		df[vardiminfo[1]] = m.parentModel.indices_values[vardiminfo[1]]
+		df[name] = pm[component, name]
+		return df
+	elseif length(vardiminfo)==2
+		df = DataFrame()
+		dim1 = length(m.parentModel.indices_values[vardiminfo[1]])
+		dim2 = length(m.parentModel.indices_values[vardiminfo[2]])
+		df[vardiminfo[1]] = repeat(m.parentModel.indices_values[vardiminfo[1]],inner=[dim2])
+		df[vardiminfo[2]] = repeat(m.parentModel.indices_values[vardiminfo[2]],outer=[dim1])
+		data = pm[component, name]
+		df[name] = cat(1,[vec(data[i,:]) for i=1:dim1]...)
+		return df
+	else
+		error("Not yet implemented")
+	end
+end
+
 import Base.show
 show(io::IO, a::ComponentState) = print(io, "ComponentState")
 
@@ -138,6 +173,11 @@ function resetvariables(s)
 	println("Generic resetvariables called for $typeofs.")
 end
 
+function getdiminfoforvar(s, name)
+	typeofs = typeof(s)
+	println("Generic getdiminfoforvar called for $typeofs.")
+end
+
 macro defcomp(name, ex)
 	dimdef = Expr(:block)
 	dimconstructor = Expr(:block)
@@ -147,6 +187,9 @@ macro defcomp(name, ex)
 	vardef = Expr(:block)
 	varalloc = Expr(:block)
 	resetvarsdef = Expr(:block)
+
+	metavardef = Expr(:block)
+	push!(metavardef.args, :(d=$(esc(Dict{String, Any}()))))
 
 	for line in ex.args
 		if line.head==:(=) && line.args[2].head==:call && line.args[2].args[1]==:Index
@@ -188,6 +231,7 @@ macro defcomp(name, ex)
 				variableIndex = first(filter(l->isa(l,Expr) && l.head==:kw && l.args[1]==:index,line.args[2].args)).args[2].args
 				vartypedef = :(Array{$(variableType),$(length(variableIndex))})
 
+				vardims = Array(Any, 0)
 				u = :(temp_indices = [])
 				for l in variableIndex
 					if isa(l, Symbol)
@@ -197,7 +241,9 @@ macro defcomp(name, ex)
 					else
 						error()
 					end
+					push!(vardims, l)
 				end
+				push!(metavardef.args, :(d[$(string(variableName))]=$(vardims)))
 
 				push!(varalloc.args,u)
 				push!(varalloc.args,:(s.$(variableName) = Array($(variableType),temp_indices...)))
@@ -205,6 +251,7 @@ macro defcomp(name, ex)
 				push!(resetvarsdef.args,:($(esc(symbol("fill!")))(s.Variables.$(variableName),$(esc(symbol("NaN"))))))
 			else
 				vartypedef = variableType
+				push!(metavardef.args, :(d[$(string(variableName))]=$(esc(Array(Any,0)))))
 
 				push!(resetvarsdef.args,:(s.Variables.$(variableName) = $(esc(symbol("NaN")))))
 			end
@@ -269,9 +316,15 @@ macro defcomp(name, ex)
 		import IAMF.timestep
 		import IAMF.init
 		import IAMF.resetvariables
+		import IAMF.getdiminfoforvar
 
 		function $(esc(symbol("resetvariables")))(s::$(esc(symbol(name))))
 			$(resetvarsdef)
+		end
+
+		function $(esc(symbol("getdiminfoforvar")))(s::$(esc(symbol(name))), varname)
+			$(metavardef)
+			d[$(esc(string))(varname)]
 		end
 	end
 
