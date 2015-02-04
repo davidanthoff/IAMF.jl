@@ -4,7 +4,8 @@ using DataFrames
 
 export
 	ComponentState, timestep, run, @defcomp, Model, setindex, addcomponent, setparameter,
-	bindparameter, setleftoverparameters, getvariable, adder, MarginalModel, getindex
+	bindparameter, setleftoverparameters, getvariable, adder, MarginalModel, getindex,
+	getdataframe
 
 abstract ComponentState
 
@@ -20,15 +21,6 @@ type Model
 		m.indices_values = Dict{Symbol, Vector{Any}}()
 		m.components = OrderedDict{Symbol,ComponentState}()
 		m.parameters_that_are_set = Set{String}()
-		return m
-	end
-end
-
-type DataFramesViewOnModel
-	parentModel::Model
-
-	function DataFramesViewOnModel(model)
-		m = new(model)
 		return m
 	end
 end
@@ -118,24 +110,23 @@ function getindex(m::Model, component::Symbol, name::Symbol)
 	return getfield(m.components[component].Variables, name)
 end
 
-function getindex(m::DataFramesViewOnModel, component::Symbol, name::Symbol)
-	pm = m.parentModel
-	comp_type = typeof(pm.components[component])
-	vardiminfo = getdiminfoforvar(pm.components[component], name)
+function getdataframe(m::Model, component::Symbol, name::Symbol)
+	comp_type = typeof(m.components[component])
+	vardiminfo = getdiminfoforvar(m.components[component], name)
 	if length(vardiminfo)==0
-		return pm[component, name]
+		return m[component, name]
 	elseif length(vardiminfo)==1
 		df = DataFrame()
-		df[vardiminfo[1]] = m.parentModel.indices_values[vardiminfo[1]]
-		df[name] = pm[component, name]
+		df[vardiminfo[1]] = m.indices_values[vardiminfo[1]]
+		df[name] = m[component, name]
 		return df
 	elseif length(vardiminfo)==2
 		df = DataFrame()
-		dim1 = length(m.parentModel.indices_values[vardiminfo[1]])
-		dim2 = length(m.parentModel.indices_values[vardiminfo[2]])
-		df[vardiminfo[1]] = repeat(m.parentModel.indices_values[vardiminfo[1]],inner=[dim2])
-		df[vardiminfo[2]] = repeat(m.parentModel.indices_values[vardiminfo[2]],outer=[dim1])
-		data = pm[component, name]
+		dim1 = length(m.indices_values[vardiminfo[1]])
+		dim2 = length(m.indices_values[vardiminfo[2]])
+		df[vardiminfo[1]] = repeat(m.indices_values[vardiminfo[1]],inner=[dim2])
+		df[vardiminfo[2]] = repeat(m.indices_values[vardiminfo[2]],outer=[dim1])
+		data = m[component, name]
 		df[name] = cat(1,[vec(data[i,:]) for i=1:dim1]...)
 		return df
 	else
