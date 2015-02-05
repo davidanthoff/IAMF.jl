@@ -1,4 +1,5 @@
 module IAMF
+include("metainfo.jl")
 using DataStructures
 using DataFrames
 
@@ -112,7 +113,7 @@ end
 
 function getdataframe(m::Model, component::Symbol, name::Symbol)
 	comp_type = typeof(m.components[component])
-	vardiminfo = getdiminfoforvar(m.components[component], name)
+	vardiminfo = getdiminfoforvar(typeof(m.components[component]), name)
 	if length(vardiminfo)==0
 		return m[component, name]
 	elseif length(vardiminfo)==1
@@ -165,8 +166,8 @@ function resetvariables(s)
 end
 
 function getdiminfoforvar(s, name)
-	typeofs = typeof(s)
-	println("Generic getdiminfoforvar called for $typeofs.")
+	meta = metainfo.getallcomps()
+	meta[s].variables[name].dimensions
 end
 
 macro defcomp(name, ex)
@@ -180,7 +181,6 @@ macro defcomp(name, ex)
 	resetvarsdef = Expr(:block)
 
 	metavardef = Expr(:block)
-	push!(metavardef.args, :(d=$(esc(Dict{String, Any}()))))
 
 	for line in ex.args
 		if line.head==:(=) && line.args[2].head==:call && line.args[2].args[1]==:Index
@@ -234,7 +234,7 @@ macro defcomp(name, ex)
 					end
 					push!(vardims, l)
 				end
-				push!(metavardef.args, :(d[$(string(variableName))]=$(vardims)))
+				push!(metavardef.args, :(metainfo.addvariable($(esc(name)), $(QuoteNode(variableName)), $(esc(variableType)), $(vardims), "", "")))
 
 				push!(varalloc.args,u)
 				push!(varalloc.args,:(s.$(variableName) = Array($(variableType),temp_indices...)))
@@ -242,7 +242,7 @@ macro defcomp(name, ex)
 				push!(resetvarsdef.args,:($(esc(symbol("fill!")))(s.Variables.$(variableName),$(esc(symbol("NaN"))))))
 			else
 				vartypedef = variableType
-				push!(metavardef.args, :(d[$(string(variableName))]=$(esc(Array(Any,0)))))
+				push!(metavardef.args, :(metainfo.addvariable($(esc(name)), $(QuoteNode(variableName)), $(esc(variableType)), {}, "", "")))
 
 				push!(resetvarsdef.args,:(s.Variables.$(variableName) = $(esc(symbol("NaN")))))
 			end
@@ -307,16 +307,13 @@ macro defcomp(name, ex)
 		import IAMF.timestep
 		import IAMF.init
 		import IAMF.resetvariables
-		import IAMF.getdiminfoforvar
 
 		function $(esc(symbol("resetvariables")))(s::$(esc(symbol(name))))
 			$(resetvarsdef)
 		end
 
-		function $(esc(symbol("getdiminfoforvar")))(s::$(esc(symbol(name))), varname)
-			$(metavardef)
-			d[$(esc(string))(varname)]
-		end
+		metainfo.addcomponent($(esc(symbol(name))))
+		$(metavardef)
 	end
 
 	x
