@@ -6,7 +6,7 @@ using DataFrames
 export
 	ComponentState, timestep, run, @defcomp, Model, setindex, addcomponent, setparameter,
 	bindparameter, setleftoverparameters, getvariable, adder, MarginalModel, getindex,
-	getdataframe
+	getdataframe, components, variables
 
 abstract ComponentState
 
@@ -30,6 +30,16 @@ type MarginalModel
 	base::Model
 	marginal::Model
 	delta::Float64
+end
+
+function components(m::Model)
+	collect(keys(m.components))
+end
+
+function variables(m::Model, componentname::Symbol)
+	meta = metainfo.getallcomps()
+	c = meta[typeof(m.components[componentname])]
+	collect(keys(c.variables))
 end
 
 function getindex(m::MarginalModel, component::Symbol, name::Symbol)
