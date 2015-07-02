@@ -1,7 +1,7 @@
 site_name: IAMF.jl
 site_url: https://github.com/davidanthoff/IAMF.jl
 repo_url: https://github.com/davidanthoff/IAMF.jl
-docs_dir: content
+docs_dir: doc
 theme: readthedocs
 pages:
 - Home: index.md
