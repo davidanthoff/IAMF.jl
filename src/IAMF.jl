@@ -45,6 +45,9 @@ function components(m::Model)
 	collect(keys(m.components))
 end
 
+"""
+List all the variables in a component.
+"""
 function variables(m::Model, componentname::Symbol)
 	meta = metainfo.getallcomps()
 	c = meta[typeof(m.components[componentname])]
@@ -96,6 +99,14 @@ function addcomponent(m::Model, t;before=nothing,after=nothing)
 	nothing
 end
 
+"""
+Add a component to a model.
+"""
+addcomponent
+
+"""
+Set the parameter of a component in a model to a given value.
+"""
 function setparameter(m::Model, component::Symbol, name::Symbol, value)
 	c = m.components[component]
 	setfield!(c.Parameters,name,value)
@@ -115,6 +126,16 @@ function bindparameter(m::Model, target_component::Symbol, target_name::Symbol, 
 	nothing
 end
 
+"""
+Bind the parameter of one component to a variable in another component.
+
+"""
+bindparameter
+
+"""
+Set all the parameters in a model that don't have a value and are not connected
+to some other component to a value from a dictionary.
+"""
 function setleftoverparameters(m::Model,parameters::Dict{Any,Any})
 	for c in m.components
 		for name in names(c[2].Parameters)
@@ -130,6 +151,9 @@ function getindex(m::Model, component::Symbol, name::Symbol)
 	return getfield(m.components[component].Variables, name)
 end
 
+"""
+Return the values for a variable as a DataFrame.
+"""
 function getdataframe(m::Model, component::Symbol, name::Symbol)
 	comp_type = typeof(m.components[component])
 	vardiminfo = getdiminfoforvar(typeof(m.components[component]), name)
@@ -157,6 +181,9 @@ end
 import Base.show
 show(io::IO, a::ComponentState) = print(io, "ComponentState")
 
+"""
+Run the model once.
+"""
 function run(m::Model;ntimesteps=typemax(Int64))
 
 	for c in values(m.components)
@@ -189,6 +216,9 @@ function getdiminfoforvar(s, name)
 	meta[s].variables[name].dimensions
 end
 
+"""
+Define a new component.
+"""
 macro defcomp(name, ex)
 	dimdef = Expr(:block)
 	dimconstructor = Expr(:block)
