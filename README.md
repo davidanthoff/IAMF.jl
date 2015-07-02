@@ -3,7 +3,7 @@
 
 # IAMF - Integrated Assessment Modeling Framework
 
-A [Julia](http://julialang.org) package for intergrated assessment models. For more information, see the **[Documentation](http://iamf.readthedocs.org/en/latest/)**
+A [Julia](http://julialang.org) package for intergrated assessment models. For more information, see the **[Documentation](http://iamf.readthedocs.org/en/latest/)**.
 
 ## Installation
 
