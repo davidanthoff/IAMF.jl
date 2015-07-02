@@ -1,4 +1,10 @@
 module IAMF
+
+if VERSION < v"0.4.0-dev"
+    using Docile
+end
+@docstrings
+
 include("metainfo.jl")
 using DataStructures
 using DataFrames
@@ -32,6 +38,9 @@ type MarginalModel
 	delta::Float64
 end
 
+"""
+List all the components in a given model.
+"""
 function components(m::Model)
 	collect(keys(m.components))
 end
