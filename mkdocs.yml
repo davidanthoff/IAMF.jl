@@ -6,4 +6,4 @@ theme: readthedocs
 pages:
 - Home: index.md
 - Tutorial: tutorial.md
-- Reference: generated/reference.md
+- Reference: reference.md
