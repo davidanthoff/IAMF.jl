@@ -5,7 +5,7 @@
 
 A [Julia](http://julialang.org) package for intergrated assessment models. For more information, see the **[Documentation](http://iamf.readthedocs.org/en/latest/)**.
 
-Please get in touch with [David Anthoff](http://www.david-anthoff.com) ([anthoff@berkeley.edu](anthoff@berkeley.edu)) if you are interested in using this framework or want to be invovled in any way with this effort.
+Please get in touch with [David Anthoff](http://www.david-anthoff.com) if you are interested in using this framework or want to be invovled in any way with this effort.
 
 ## Overview
 
