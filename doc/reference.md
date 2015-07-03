@@ -9,7 +9,7 @@ Add a component to a model.
 
 
 *source:*
-[IAMF\src\IAMF.jl:105](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:105](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L105)
 
 ---
 
@@ -20,7 +20,7 @@ Bind the parameter of one component to a variable in another component.
 
 
 *source:*
-[IAMF\src\IAMF.jl:133](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:133](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L133)
 
 ---
 
@@ -30,7 +30,7 @@ List all the components in a given model.
 
 
 *source:*
-[IAMF\src\IAMF.jl:44](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:44](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L44)
 
 ---
 
@@ -40,7 +40,7 @@ Return the values for a variable as a DataFrame.
 
 
 *source:*
-[IAMF\src\IAMF.jl:157](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:157](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L157)
 
 ---
 
@@ -50,7 +50,7 @@ Run the model once.
 
 
 *source:*
-[IAMF\src\IAMF.jl:187](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:187](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L187)
 
 ---
 
@@ -61,7 +61,7 @@ to some other component to a value from a dictionary.
 
 
 *source:*
-[IAMF\src\IAMF.jl:139](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:139](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L139)
 
 ---
 
@@ -71,7 +71,7 @@ Set the parameter of a component in a model to a given value.
 
 
 *source:*
-[IAMF\src\IAMF.jl:110](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:110](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L110)
 
 ---
 
@@ -81,7 +81,7 @@ List all the variables in a component.
 
 
 *source:*
-[IAMF\src\IAMF.jl:51](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:51](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L51)
 
 ---
 
@@ -91,5 +91,5 @@ Define a new component.
 
 
 *source:*
-[IAMF\src\IAMF.jl:222](file://C:\Users\anthoff\.julia\v0.3\IAMF\src\IAMF.jl)
+[IAMF\src\IAMF.jl:222](https://github.com/davidanthoff/IAMF.jl/tree/82515ffd4fe4c04482001d80e263d03466903680/src\IAMF.jl#L222)
 
