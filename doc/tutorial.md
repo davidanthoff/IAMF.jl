@@ -69,7 +69,7 @@ We can now use IAMF to construct a model that binds the ``grosseconomy`` and ``e
 * Once the model is defined, ``setindex`` is used to set the length and interval of the time step.
 * We then use ``addcomponent`` to incorporate each component that we previously created into the model.  It is important to note that the order in which the components are listed here matters.  The model will run through each equation of the first component before moving onto the second component. 
 * Next, ``setparameter`` is used to assign values to each parameter in the model, with parameters being uniquely tied to each component. If _population_ was a parameter for two different components, it must be assigned to each one using ``setparameter`` two different times. The syntax is ``setparameter(model_name, :component_name, :parameter_name, value)``
-* If any variables of one component are parameters for another, ``bindparameter`` is used to couple the two components together. In this example, _YGROSS_ is a variable in the ``grosseconomy`` component and a parameter in the ``emissions`` component. The syntax is ``bindparameter(model_name, :component_name_current, :parameter_name, :component_name_variable)``, where ``:component_name_variable`` refers to the component where your parameter was initially calculated as a variable.
+* If any variables of one component are parameters for another, ``connectparameter`` is used to couple the two components together. In this example, _YGROSS_ is a variable in the ``grosseconomy`` component and a parameter in the ``emissions`` component. The syntax is ``connectparameter(model_name, :component_name_current, :parameter_name, :component_name_variable)``, where ``:component_name_variable`` refers to the component where your parameter was initially calculated as a variable.
 * Finally, the model can be run using the command ``run(model_name)``.
 * To access model results, use ``model_name[:component, :variable_name]``. 
 
@@ -91,7 +91,7 @@ setparameter(my_model, :grosseconomy, :share, 0.3)
 
 #Set parameters for the emissions component
 setparameter(my_model, :emissions, :sigma, [(1. - 0.05)^t *0.58 for t in 1:20])
-bindparameter(my_model, :emissions, :YGROSS, :grosseconomy)  #Note that bindparameter was used here.
+connectparameter(my_model, :emissions, :YGROSS, :grosseconomy)  #Note that connectparameter was used here.
 
 run(my_model)
 
@@ -243,7 +243,7 @@ setparameter(my_model, :grosseconomy, :share, 0.3)
 
 #set parameters for emissions component
 setparameter(my_model, :emissions, :sigma, sigma)
-bindparameter(my_model, :emissions, :YGROSS, :grosseconomy)  
+connectparameter(my_model, :emissions, :YGROSS, :grosseconomy)  
 
 run(my_model)
 return(my_model)
