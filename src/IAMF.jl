@@ -11,7 +11,7 @@ using DataFrames
 
 export
 	ComponentState, timestep, run, @defcomp, Model, setindex, addcomponent, setparameter,
-	bindparameter, setleftoverparameters, getvariable, adder, MarginalModel, getindex,
+	connectparameter, setleftoverparameters, getvariable, adder, MarginalModel, getindex,
 	getdataframe, components, variables
 
 abstract ComponentState
@@ -114,11 +114,11 @@ function setparameter(m::Model, component::Symbol, name::Symbol, value)
 	nothing
 end
 
-function bindparameter(m::Model, component::Symbol, name::Symbol, source::Symbol)
-	bindparameter(m, component, name, source, name)
+function connectparameter(m::Model, component::Symbol, name::Symbol, source::Symbol)
+	connectparameter(m, component, name, source, name)
 end
 
-function bindparameter(m::Model, target_component::Symbol, target_name::Symbol, source_component::Symbol, source_name::Symbol)
+function connectparameter(m::Model, target_component::Symbol, target_name::Symbol, source_component::Symbol, source_name::Symbol)
 	c_target = m.components[target_component]
 	c_source = m.components[source_component]
 	setfield!(c_target.Parameters, target_name, getfield(c_source.Variables, source_name))
@@ -130,7 +130,7 @@ end
 Bind the parameter of one component to a variable in another component.
 
 """
-bindparameter
+connectparameter
 
 """
 Set all the parameters in a model that don't have a value and are not connected
