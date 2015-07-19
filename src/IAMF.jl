@@ -8,6 +8,7 @@ end
 include("metainfo.jl")
 using DataStructures
 using DataFrames
+using Distributions
 
 export
 	ComponentState, timestep, run, @defcomp, Model, setindex, addcomponent, setparameter,
@@ -16,11 +17,106 @@ export
 
 abstract ComponentState
 
+abstract Parameter
+
+type CertainScalarParameter <: Parameter
+	dependentCompsAndParams::Set{(ComponentState,Symbol)}
+	value
+
+	function CertainScalarParameter(value)
+		p = new()
+		p.dependentCompsAndParams = Set{(ComponentState,Symbol)}()
+		p.value = value
+		return p
+	end
+end
+
+function setbestguess(p::CertainScalarParameter)
+	for (c, name) in p.dependentCompsAndParams
+		bg_value = p.value
+		setfield!(c.Parameters,name,bg_value)
+	end
+end
+
+function setrandom(p::CertainScalarParameter)
+	for (c, name) in p.dependentCompsAndParams
+		bg_value = p.value
+		setfield!(c.Parameters,name,bg_value)
+	end
+end	
+
+type UncertainScalarParameter <: Parameter
+	dependentCompsAndParams::Set{(ComponentState,Symbol)}
+	value::Distribution
+
+	function UncertainScalarParameter(value)
+		p = new()
+		p.dependentCompsAndParams = Set{(ComponentState,Symbol)}()
+		p.value = value
+		return p
+	end
+end
+
+function setbestguess(p::UncertainScalarParameter)
+	bg_value = mode(p.value)
+	for (c, name) in p.dependentCompsAndParams		
+		setfield!(c.Parameters,name,bg_value)
+	end
+end
+
+function setrandom(p::UncertainScalarParameter)
+	sample = rand(p.value)
+	for (c, name) in p.dependentCompsAndParams
+		setfield!(c.Parameters,name,sample)
+	end
+end	
+
+type UncertainArrayParameter <: Parameter
+	distributions::Array{Distribution, 1}
+	values::Array{Float64,1}
+
+	function UncertainArrayParameter(distributions)		
+		uap = new()
+		uap.distributions = distributions
+		uap.values = Array(Float64, size(distributions))
+		return uap
+	end
+end
+
+function setbestguess(p::UncertainArrayParameter)
+	for i in 1:length(p.distributions)
+		p.values[i] = mode(p.distributions[i])
+	end
+end
+
+function setrandom(p::UncertainArrayParameter)
+	for i in 1:length(p.distributions)
+		p.values[i] = rand(p.distributions[i])
+	end
+end
+
+type CertainArrayParameter <: Parameter
+	values
+
+	function CertainArrayParameter(values::Array)		
+		uap = new()
+		uap.values = values
+		return uap
+	end
+end
+
+function setbestguess(p::CertainArrayParameter)
+end
+
+function setrandom(p::CertainArrayParameter)
+end	
+
 type Model
 	indices_counts::Dict{Symbol,Int}
 	indices_values::Dict{Symbol,Vector{Any}}
 	components::OrderedDict{Symbol,ComponentState}
 	parameters_that_are_set::Set{String}
+	parameters::Dict{Symbol,Parameter}
 
 	function Model()
 		m = new()
@@ -28,6 +124,7 @@ type Model
 		m.indices_values = Dict{Symbol, Vector{Any}}()
 		m.components = OrderedDict{Symbol,ComponentState}()
 		m.parameters_that_are_set = Set{String}()
+		m.parameters = Dict{Symbol, Parameter}()
 		return m
 	end
 end
@@ -36,6 +133,18 @@ type MarginalModel
 	base::Model
 	marginal::Model
 	delta::Float64
+end
+
+function setbestguess(m::Model)
+	for p in values(m.parameters)
+		setbestguess(p)
+	end
+end
+
+function setrandom(m::Model)
+	for p in values(m.parameters)
+		setrandom(p)
+	end
 end
 
 """
@@ -108,14 +217,42 @@ addcomponent
 Set the parameter of a component in a model to a given value.
 """
 function setparameter(m::Model, component::Symbol, name::Symbol, value)
-	c = m.components[component]
-	setfield!(c.Parameters,name,value)
-	push!(m.parameters_that_are_set, string(component) * string(name))
+	addparameter(m, name, value)
+	connectparameter(m, component, name, name)
+
 	nothing
 end
 
-function connectparameter(m::Model, component::Symbol, name::Symbol, source::Symbol)
-	connectparameter(m, component, name, source, name)
+function connectparameter(m::Model, component::Symbol, name::Symbol, parametername::Symbol)
+	c = m.components[component]
+	p = m.parameters[symbol(lowercase(string(parametername)))]
+
+	if isa(p, CertainScalarParameter) || isa(p, UncertainScalarParameter)
+		push!(p.dependentCompsAndParams, (c, name))
+	else
+		setfield!(c.Parameters,name,p.values)
+	end
+	push!(m.parameters_that_are_set, string(component) * string(name))
+
+	nothing
+end
+
+function addparameter(m::Model, name::Symbol, value)
+	if isa(value, Distribution)
+		p = UncertainScalarParameter(value)
+		m.parameters[name] = p
+	elseif isa(value, AbstractArray)
+		if any(x->isa(x, Distribution), value)
+			p = UncertainArrayParameter(value)
+			m.parameters[name] = p
+		else
+			p = CertainArrayParameter(value)
+			m.parameters[name] = p
+		end
+	else
+		p = CertainScalarParameter(value)
+		m.parameters[name] = p
+	end	
 end
 
 function connectparameter(m::Model, target_component::Symbol, target_name::Symbol, source_component::Symbol, source_name::Symbol)
@@ -137,10 +274,14 @@ Set all the parameters in a model that don't have a value and are not connected
 to some other component to a value from a dictionary.
 """
 function setleftoverparameters(m::Model,parameters::Dict{Any,Any})
+	for (name, value) in parameters
+		addparameter(m, symbol(name), value)
+	end
+
 	for c in m.components
 		for name in names(c[2].Parameters)
 			if !in(string(c[1])*string(name), m.parameters_that_are_set)
-				setfield!(c[2].Parameters,name,parameters[lowercase(string(name))])
+				connectparameter(m, c[1], name, name)
 			end
 		end
 	end
