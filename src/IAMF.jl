@@ -13,7 +13,7 @@ using Distributions
 export
 	ComponentState, timestep, run, @defcomp, Model, setindex, addcomponent, setparameter,
 	connectparameter, setleftoverparameters, getvariable, adder, MarginalModel, getindex,
-	getdataframe, components, variables
+	getdataframe, components, variables, setbestguess, setrandom
 
 abstract ComponentState
 
