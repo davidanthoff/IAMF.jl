@@ -339,7 +339,7 @@ function run(m::Model;ntimesteps=typemax(Int64))
 	end
 end
 
-function timestep(s, t::Int)
+function timestep(s, t)
 	typeofs = typeof(s)
 	println("Generic timestep called for $typeofs.")
 end
