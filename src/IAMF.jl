@@ -13,7 +13,7 @@ using Distributions
 export
 	ComponentState, timestep, run, @defcomp, Model, setindex, addcomponent, setparameter,
 	connectparameter, setleftoverparameters, getvariable, adder, MarginalModel, getindex,
-	getdataframe, components, variables, setbestguess, setrandom
+	getdataframe, components, variables, setbestguess, setrandom, getvpd
 
 abstract ComponentState
 
@@ -355,6 +355,10 @@ end
 function getdiminfoforvar(s, name)
 	meta = metainfo.getallcomps()
 	meta[s].variables[name].dimensions
+end
+
+function getvpd(s)
+	return s.Variables, s.Parameters, s.Dimensions
 end
 
 """
