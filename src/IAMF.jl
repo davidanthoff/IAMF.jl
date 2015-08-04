@@ -220,6 +220,7 @@ function setparameter(m::Model, component::Symbol, name::Symbol, value)
 	addparameter(m, name, value)
 	connectparameter(m, component, name, name)
 
+	setbestguess(m, parameters[symbol(lowercase(string(name)))])
 	nothing
 end
 
