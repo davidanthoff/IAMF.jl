@@ -240,18 +240,18 @@ end
 function addparameter(m::Model, name::Symbol, value)
 	if isa(value, Distribution)
 		p = UncertainScalarParameter(value)
-		m.parameters[name] = p
+		m.parameters[symbol(lowercase(string(name)))] = p
 	elseif isa(value, AbstractArray)
 		if any(x->isa(x, Distribution), value)
 			p = UncertainArrayParameter(value)
-			m.parameters[name] = p
+			m.parameters[symbol(lowercase(string(name)))] = p
 		else
 			p = CertainArrayParameter(value)
-			m.parameters[name] = p
+			m.parameters[symbol(lowercase(string(name)))] = p
 		end
 	else
 		p = CertainScalarParameter(value)
-		m.parameters[name] = p
+		m.parameters[symbol(lowercase(string(name)))] = p
 	end	
 end
 
