@@ -1,5 +1,0 @@
-language: julia
-julia:
-  - release
-notifications:
-  email: false
